@@ -1,0 +1,27 @@
+:root { --turf:#14532d; --turf2:#16a34a; --lime:#a3e635; }
+body { background:#f3f7f4; }
+.turf-nav { background:linear-gradient(90deg,#052e16,var(--turf)); }
+.turf-nav .nav-link { color:#d1fae5; } .turf-nav .nav-link:hover, .turf-nav .nav-link.active { color:#fff; border-bottom:2px solid var(--lime); }
+.hero { background:linear-gradient(120deg,rgba(5,46,22,.92),rgba(22,163,74,.85)),
+        repeating-linear-gradient(90deg,#166534 0 40px,#15803d 40px 80px);
+        color:#fff; border-radius:1rem; padding:2.5rem 2rem; position:relative; overflow:hidden; }
+.hero h1 { font-weight:800; } .hero h1 span { color:var(--lime); }
+.hero::after { content:"⚽"; position:absolute; right:2rem; top:50%; transform:translateY(-50%); font-size:6rem; opacity:.25; }
+.filter-card { border:0; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+.turf-card { border:0; border-radius:1rem; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.08); transition:transform .15s; }
+.turf-card:hover { transform:translateY(-4px); }
+.turf-banner { height:110px; display:flex; align-items:center; justify-content:center; font-size:3rem; color:#fff;
+               background:repeating-linear-gradient(90deg,#15803d 0 30px,#16a34a 30px 60px); position:relative; }
+.turf-banner .price { position:absolute; right:.75rem; bottom:.5rem; font-size:.9rem; background:#052e16; padding:.15rem .6rem; border-radius:2rem; }
+.sport-chip { background:#dcfce7; color:#14532d; font-size:.75rem; border-radius:2rem; padding:.15rem .6rem; margin:0 .25rem .25rem 0; display:inline-block; }
+.slot-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:.5rem; }
+.slot { border:1.5px solid var(--turf2); background:#fff; color:var(--turf); border-radius:.5rem; padding:.4rem 0; font-weight:600; font-size:.9rem; }
+.slot:hover:not(:disabled) { background:#dcfce7; }
+.slot.selected { background:var(--turf2); color:#fff; } .slot.inrange { background:#bbf7d0; border-color:var(--turf2); }
+.slot:disabled { background:#e5e7eb; border-color:#d1d5db; color:#9ca3af; text-decoration:line-through; }
+.legend { display:inline-block; width:12px; height:12px; border-radius:3px; margin:0 .25rem 0 .75rem; vertical-align:middle; }
+.legend.ok { background:#fff; border:1.5px solid var(--turf2); } .legend.booked { background:#d1d5db; }
+.sql-box { background:#0f172a; color:#a7f3d0; border-radius:.5rem; padding:1rem; font-size:.85rem; white-space:pre-wrap; max-height:260px; overflow:auto; }
+#labList { max-height:60vh; overflow:auto; } #labList .active { background:var(--turf2); border-color:var(--turf2); }
+.kpi { border:0; border-radius:1rem; color:#fff; } .kpi .num { font-size:1.8rem; font-weight:800; }
+.star { color:#f59e0b; }
