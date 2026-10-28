@@ -84,15 +84,26 @@
 
   <!-- ============ DB LAB ============ -->
   <section id="page-lab" class="page d-none">
-    <h3>🧪 DB Lab <small class="text-muted fs-6">live SQL running on your PostgreSQL database</small></h3>
+    <div class="d-flex flex-wrap gap-2 my-3">
+      <button class="btn btn-sm btn-outline-secondary" onclick="filterLab('')">All Features</button>
+      <button class="btn btn-sm btn-outline-primary" onclick="filterLab('DQL (Data Query Language)')">DQL</button>
+      <button class="btn btn-sm btn-outline-success" onclick="filterLab('Aggregate Functions (GROUP BY, HAVING)')">Aggregates &amp; Having</button>
+      <button class="btn btn-sm btn-outline-info" onclick="filterLab('Views in SQL')">Views in SQL</button>
+      <button class="btn btn-sm btn-outline-warning" onclick="filterLab('Joins')">Joins</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="filterLab('Data Control Commands (DCL)')">DCL Commands</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="filterLab('Triggers')">Triggers</button>
+      <button class="btn btn-sm btn-outline-primary" onclick="filterLab('PLSQL')">PL/SQL</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="filterLab('Transaction from sql')">Transactions (TCL)</button>
+    </div>
     <div class="row g-3 mt-1">
       <div class="col-lg-4"><div class="card"><div class="card-body">
+        <label class="form-label small fw-semibold text-muted">Feature Category</label>
         <select id="labCat" class="form-select mb-2"></select>
         <div id="labList" class="list-group"></div>
       </div></div></div>
       <div class="col-lg-8">
         <div class="card mb-3"><div class="card-body">
-          <h5 id="labTitle">Pick a query</h5><p id="labDesc" class="text-muted"></p>
+          <div class="d-flex justify-content-between align-items-center mb-1"><h5 id="labTitle" class="mb-0">Pick a query</h5><span id="labBadge" class="badge text-bg-secondary"></span></div><p id="labDesc" class="text-muted"></p>
           <pre id="labSql" class="sql-box">-- select a query on the left</pre>
           <button id="labRun" class="btn btn-success" disabled>▶ Run query</button>
         </div></div>

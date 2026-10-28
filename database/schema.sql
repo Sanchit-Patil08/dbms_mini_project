@@ -115,6 +115,33 @@ LEFT JOIN (SELECT turf_id, COUNT(*) AS total_bookings, SUM(total_amount) AS reve
 LEFT JOIN (SELECT turf_id, ROUND(AVG(rating),1) AS avg_rating, COUNT(*) AS review_count
            FROM reviews GROUP BY turf_id) r ON r.turf_id = t.turf_id;
 
+-- Additional View: Customer Summary with aggregations
+CREATE OR REPLACE VIEW v_customer_summary AS
+SELECT 
+    u.user_id,
+    u.full_name,
+    u.email,
+    u.phone,
+    COUNT(b.booking_id) AS total_bookings,
+    COUNT(CASE WHEN b.status = 'COMPLETED' THEN 1 END) AS completed_bookings,
+    COALESCE(SUM(CASE WHEN b.status <> 'CANCELLED' THEN b.total_amount ELSE 0 END), 0.00) AS total_spent,
+    COUNT(DISTINCT r.review_id) AS reviews_given
+FROM users u
+LEFT JOIN bookings b ON b.user_id = u.user_id
+LEFT JOIN reviews r  ON r.user_id = u.user_id
+GROUP BY u.user_id, u.full_name, u.email, u.phone;
+
+-- Additional View: Daily Revenue and booking volumes
+CREATE OR REPLACE VIEW v_daily_revenue AS
+SELECT 
+    b.booking_date,
+    COUNT(b.booking_id) AS booking_count,
+    SUM(b.total_amount) AS daily_revenue,
+    ROUND(AVG(b.total_amount), 2) AS avg_ticket_size
+FROM bookings b
+WHERE b.status <> 'CANCELLED'
+GROUP BY b.booking_date;
+
 -- ---------- TRIGGER 1: prevent double booking ----------
 CREATE OR REPLACE FUNCTION trg_check_overlap() RETURNS TRIGGER AS $$
 BEGIN
@@ -196,3 +223,93 @@ BEGIN
     UPDATE payments SET status = 'REFUNDED'  WHERE booking_id = p_booking;
     RETURN 'Booking cancelled. Refund of Rs. ' || v_amount || ' initiated.';
 END $$ LANGUAGE plpgsql;
+
+-- ---------- TRIGGER 3: validate review rating range ----------
+CREATE OR REPLACE FUNCTION trg_validate_review() RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.rating < 1 OR NEW.rating > 5 THEN
+        RAISE EXCEPTION 'Review rating must be between 1 and 5';
+    END IF;
+    RETURN NEW;
+END $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_review_validation
+BEFORE INSERT OR UPDATE ON reviews
+FOR EACH ROW EXECUTE FUNCTION trg_validate_review();
+
+-- ---------- STORED FUNCTION: calculate turf total revenue ----------
+CREATE OR REPLACE FUNCTION fn_calculate_turf_revenue(p_turf INT)
+RETURNS NUMERIC AS $$
+DECLARE
+    v_rev NUMERIC;
+BEGIN
+    SELECT COALESCE(SUM(total_amount), 0.00) INTO v_rev
+    FROM bookings
+    WHERE turf_id = p_turf AND status <> 'CANCELLED';
+    RETURN v_rev;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- ---------- STORED FUNCTION: check slot availability ----------
+CREATE OR REPLACE FUNCTION fn_check_slot_available(
+    p_turf INT, p_date DATE, p_start TIME, p_end TIME
+) RETURNS BOOLEAN AS $$
+DECLARE
+    v_conflict INT;
+BEGIN
+    SELECT COUNT(*) INTO v_conflict
+    FROM bookings
+    WHERE turf_id = p_turf
+      AND booking_date = p_date
+      AND status <> 'CANCELLED'
+      AND p_start < end_time
+      AND p_end > start_time;
+    RETURN (v_conflict = 0);
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- ---------- STORED FUNCTION: get customer statistics ----------
+CREATE OR REPLACE FUNCTION fn_get_customer_stats(p_user INT)
+RETURNS TABLE (
+    user_id INT,
+    customer_name VARCHAR,
+    booking_count BIGINT,
+    total_spent NUMERIC,
+    preferred_sport VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.user_id,
+        u.full_name,
+        COUNT(b.booking_id) AS booking_count,
+        COALESCE(SUM(b.total_amount), 0.00) AS total_spent,
+        COALESCE((
+            SELECT s.sport_name 
+            FROM bookings b2 
+            JOIN sports s ON s.sport_id = b2.sport_id 
+            WHERE b2.user_id = p_user 
+            GROUP BY s.sport_name 
+            ORDER BY COUNT(*) DESC LIMIT 1
+        ), 'None') AS preferred_sport
+    FROM users u
+    LEFT JOIN bookings b ON b.user_id = u.user_id AND b.status <> 'CANCELLED'
+    WHERE u.user_id = p_user
+    GROUP BY u.user_id, u.full_name;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- ---------- DATA CONTROL LANGUAGE (DCL) SETUP ----------
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'turf_readonly') THEN
+        CREATE ROLE turf_readonly NOLOGIN;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'turf_manager') THEN
+        CREATE ROLE turf_manager NOLOGIN;
+    END IF;
+END $$;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO turf_readonly;
+GRANT SELECT, INSERT, UPDATE ON bookings, payments, reviews TO turf_manager;
+REVOKE DELETE ON bookings, payments FROM turf_manager;

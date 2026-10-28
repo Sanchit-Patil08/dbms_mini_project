@@ -253,19 +253,25 @@ const loadLab = run(async () => {
   if (!lab.length) {
     lab = await api("/lab");
     const cats = [...new Set(lab.map((q) => q.category))];
-    $("#labCat").innerHTML = '<option value="">All categories</option>' + cats.map((c) => `<option>${esc(c)}</option>`).join("");
+    $("#labCat").innerHTML = '<option value="">All categories</option>' + cats.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
   }
   renderLabList();
 });
+function filterLab(cat) {
+  $("#labCat").value = cat;
+  renderLabList();
+}
+window.filterLab = filterLab;
 function renderLabList() {
   const cat = $("#labCat").value;
   $("#labList").innerHTML = lab.filter((q) => !cat || q.category === cat).map((q) =>
-    `<button class="list-group-item list-group-item-action ${labSel === q.key ? "active" : ""}" onclick="selectLab('${q.key}')"><div class="fw-semibold">${esc(q.title)}</div><small>${esc(q.category)}</small></button>`).join("");
+    `<button class="list-group-item list-group-item-action ${labSel === q.key ? "active" : ""}" onclick="selectLab('${q.key}')"><div class="fw-semibold">${esc(q.title)}</div><small class="opacity-75">${esc(q.category)}</small></button>`).join("");
 }
 $("#labCat").addEventListener("change", renderLabList);
 function selectLab(key) {
   labSel = key; const q = lab.find((x) => x.key === key);
   $("#labTitle").textContent = q.title; $("#labDesc").textContent = q.desc; $("#labSql").textContent = q.sql;
+  if ($("#labBadge")) $("#labBadge").textContent = q.category;
   $("#labRun").disabled = false; $("#labTable").innerHTML = ""; $("#labCount").textContent = "Results"; renderLabList();
 }
 $("#labRun").addEventListener("click", run(async () => {

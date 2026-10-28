@@ -12,12 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from psycopg2.extras import RealDictCursor
 from psycopg2.pool import SimpleConnectionPool
 from pydantic import BaseModel, Field
-from dotenv import load_dotenv
 
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:sanchit@localhost:5432/turf_db")
 ROOT = Path(__file__).resolve().parent.parent
 pool = SimpleConnectionPool(1, 10, DATABASE_URL)
 
@@ -335,7 +331,7 @@ def lab_run(key: str):
     with db() as cur:
         cur.execute("SET TRANSACTION READ ONLY")
         cur.execute(item["sql"])
-        rows = cur.fetchall()
+        rows = cur.fetchall() if cur.description else [{"status": "Success", "message": "Query executed successfully"}]
     return {**item, "rows": rows}
 
 

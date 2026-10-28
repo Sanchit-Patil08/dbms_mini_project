@@ -30,21 +30,21 @@ users 1─∞ bookings ∞─1 turfs · bookings 1─1 payments · users ∞─�
 ## DBMS concepts checklist
 | Concept | Where |
 |---|---|
-| DDL: CREATE/ALTER/DROP/TRUNCATE | schema.sql, dml_ddl_demo.sql |
-| Constraints: PK, FK (CASCADE / SET NULL), UNIQUE, CHECK, NOT NULL, DEFAULT, composite PK | schema.sql |
-| DML: INSERT, INSERT...SELECT, UPDATE, DELETE, RETURNING, UPSERT (ON CONFLICT) | seed.sql, main.py (`/api/reviews`), demo file |
-| Filtering: WHERE, BETWEEN, IN, LIKE/ILIKE, ORDER BY, LIMIT, DISTINCT | queries.sql, `/api/turfs` |
-| Aggregates, GROUP BY, HAVING, STRING_AGG | queries.sql |
-| Joins: INNER, LEFT, RIGHT, FULL, SELF, CROSS | queries.sql |
-| Subqueries: scalar, IN, EXISTS/NOT EXISTS, correlated, ALL/ANY | queries.sql, `/api/turfs` |
-| Set ops: UNION, INTERSECT, EXCEPT | queries.sql |
-| CTE, recursive CTE, window functions (RANK, ROW_NUMBER, LAG, running SUM) | queries.sql |
-| Views | `v_booking_details`, `v_turf_stats` |
-| Indexes: single, composite, partial | schema.sql (+ EXPLAIN in DB Lab) |
-| Triggers: double-booking guard (BEFORE), audit log (AFTER) | schema.sql |
-| Stored functions (PL/pgSQL): `fn_book_turf`, `fn_cancel_booking` | schema.sql |
-| Transactions, row locking (`FOR UPDATE`), SAVEPOINT/ROLLBACK | `fn_book_turf`, `db()` helper, demo file |
-| DCL: CREATE ROLE, GRANT, REVOKE | dml_ddl_demo.sql |
+| **DQL (Data Query Language)** | `database/queries.sql` (WHERE, BETWEEN, IN, LIKE/ILIKE, ORDER BY, LIMIT, DISTINCT, CASE, COALESCE) |
+| **Aggregate Functions: GROUP BY & HAVING** | `database/queries.sql` (COUNT, SUM, AVG, MIN, MAX, STRING_AGG, multi-column GROUP BY, HAVING thresholds) |
+| **Views in SQL** | `database/schema.sql`, `database/queries.sql` (`v_booking_details`, `v_turf_stats`, `v_customer_summary`, `v_daily_revenue`) |
+| **Joins** | `database/queries.sql` (INNER, LEFT OUTER, RIGHT OUTER, FULL OUTER, SELF, CROSS) |
+| **Data Control Commands (DCL)** | `database/schema.sql`, `database/dml_ddl_demo.sql`, `database/queries.sql` (CREATE ROLE, GRANT, REVOKE, `information_schema.table_privileges`, `pg_roles`) |
+| **Triggers** | `database/schema.sql`, `database/queries.sql` (`trg_booking_overlap` BEFORE, `trg_booking_audit` AFTER, `trg_review_validation`, `booking_audit` log) |
+| **PL/SQL (PL/pgSQL Functions & Procedures)** | `database/schema.sql`, `database/queries.sql` (`fn_book_turf`, `fn_cancel_booking`, `fn_calculate_turf_revenue`, `fn_check_slot_available`, `fn_get_customer_stats`) |
+| **Transaction from SQL (TCL)** | `database/schema.sql`, `database/dml_ddl_demo.sql`, `database/queries.sql` (BEGIN/COMMIT/ROLLBACK, SAVEPOINT, row locking `FOR UPDATE`, `txid_current()`, `pg_locks`) |
+| DDL: CREATE/ALTER/DROP/TRUNCATE | `schema.sql`, `dml_ddl_demo.sql` |
+| Constraints: PK, FK (CASCADE / SET NULL), UNIQUE, CHECK, NOT NULL, DEFAULT, composite PK | `schema.sql` |
+| DML: INSERT, INSERT...SELECT, UPDATE, DELETE, RETURNING, UPSERT (ON CONFLICT) | `seed.sql`, `main.py`, `dml_ddl_demo.sql` |
+| Subqueries: scalar, IN, EXISTS/NOT EXISTS, correlated, ALL/ANY | `queries.sql` |
+| Set ops: UNION, INTERSECT, EXCEPT | `queries.sql` |
+| CTE & Window Functions: RANK, ROW_NUMBER, running SUM, percentage of total | `queries.sql` |
+| Query Execution Plan: EXPLAIN | `queries.sql` |
 
 ## Booking rules (enforced in the database, not in Python)
 Open 06:00-23:00 · 1-4 hour bookings · no past or already-started slots · weekend rate +20% ·
